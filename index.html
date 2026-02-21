@@ -8,154 +8,217 @@
     <!-- Primary Meta Tags -->
     <meta name="title" content="JSON Compare & Formatter Online | Free JSON Studio">
     <meta name="description" content="Free online tool to format, validate, and compare JSON data. Side-by-side JSON comparison, diff checker, and pretty viewer with a beautiful UI.">
-    <meta name="keywords" content="json compare, json compair, json formatter, json diff, json validator, online json tools, compare json online, diff checker">
-    <meta name="author" content="JSON Studio">
+    <meta name="keywords" content="json compare, json compair, json formatter, json diff, json validator, online json tools, compare json online, diff checker, advanced json viewer">
     
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="JSON Compare & Formatter Online | Free JSON Studio">
-    <meta property="og:description" content="Free online tool to format, validate, and compare JSON data. Side-by-side JSON comparison, diff checker, and pretty viewer.">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="JSON Compare & Formatter Online | Free JSON Studio">
-    <meta property="twitter:description" content="Free online tool to format, validate, and compare JSON data. Side-by-side JSON comparison, diff checker, and pretty viewer.">
-
-    <!-- Canonical Tag (Update this with your Vercel URL later) -->
-    <!-- <link rel="canonical" href="https://your-vercel-domain.vercel.app/" /> -->
-
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Background effects -->
-    <div class="bg-glow"></div>
-    <div class="bg-grid"></div>
+    <div class="ambient-background">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="glass-overlay"></div>
+    </div>
 
     <div class="app-container">
-        <header>
-            <div class="logo">
-                <div class="logo-icon-wrapper">
-                    <i class="fas fa-layer-group logo-icon"></i>
+        <!-- GLOBAL NAVBAR -->
+        <nav class="glass-navbar">
+            <div class="nav-brand">
+                <div class="logo-box">
+                    <i class="fas fa-layer-group"></i>
                 </div>
-                <h1>JSON<span class="font-light">Studio Pro</span></h1>
-            </div>
-            
-            <div class="options-bar">
-                <label class="toggle-switch" title="Alphabetically sort keys when formatting/comparing">
-                    <input type="checkbox" id="sortKeysToggle" checked>
-                    <span class="slider"></span>
-                    <span class="toggle-label">Sort Keys</span>
-                </label>
+                <div class="brand-text">
+                    <h1>JSON<span class="accent-text">Studio Pro</span></h1>
+                    <span class="version-badge">v2.0 Advanced</span>
+                </div>
             </div>
 
-            <div class="actions">
-                <button id="formatBtn" class="btn secondary" title="Pretty Print JSON">
-                    <i class="fas fa-wand-magic-sparkles"></i> Format
-                </button>
-                <button id="minifyBtn" class="btn secondary" title="Minify JSON">
-                    <i class="fas fa-compress"></i> Minify
-                </button>
-                <div class="divider"></div>
-                <button id="compareBtn" class="btn primary" title="Run Diff Analysis">
-                    <i class="fas fa-code-compare"></i> Compare
-                </button>
-                <button id="clearBtn" class="btn danger-outline" title="Clear Editors">
-                    <i class="fas fa-trash-can"></i> Clear
-                </button>
-                <div class="divider"></div>
-                <button id="themeToggle" class="btn icon-btn" title="Toggle Theme">
+            <div class="nav-controls">
+                <div class="control-group">
+                    <label class="premium-switch" title="Alphabetically sort keys before action">
+                        <input type="checkbox" id="sortKeysToggle">
+                        <span class="switch-slider"></span>
+                        <span class="switch-text">Sort Keys</span>
+                    </label>
+                </div>
+                
+                <div class="separator"></div>
+
+                <div class="action-buttons">
+                    <button id="formatBtn" class="btn btn-glass" title="Pretty Print JSON">
+                        <i class="fas fa-wand-magic-sparkles"></i> <span>Format</span>
+                    </button>
+                    <button id="minifyBtn" class="btn btn-glass" title="Minify JSON">
+                        <i class="fas fa-compress-alt"></i> <span>Minify</span>
+                    </button>
+                    <button id="compareBtn" class="btn btn-primary" title="Analyze Differences">
+                        <i class="fas fa-code-compare"></i> <span>Compare & Diff</span>
+                    </button>
+                    <button id="clearBtn" class="btn btn-danger" title="Clear All Editors">
+                        <i class="fas fa-trash-can"></i>
+                    </button>
+                </div>
+
+                <div class="separator"></div>
+                
+                <button id="themeToggle" class="btn-circular" title="Toggle Light/Dark Theme">
                     <i class="fas fa-sun"></i>
                 </button>
             </div>
-        </header>
+        </nav>
 
-        <main class="editor-container" id="editorView">
-            <!-- Left Panel -->
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title-area">
-                        <div class="panel-title">
-                            <span class="dot origin-dot"></span>
-                            <h2>Original Source</h2>
-                        </div>
-                        <span class="status" id="statusLeft"></span>
+        <!-- MAIN EDITOR VIEW -->
+        <main class="workspace" id="editorView">
+            
+            <!-- LEFT PANEL -->
+            <section class="editor-card">
+                <header class="card-header">
+                    <div class="window-controls">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
                     </div>
                     
-                    <div class="panel-tools">
-                        <input type="file" id="uploadLeft" accept=".json,.txt" class="hidden">
-                        <button class="tool-btn" id="uploadLeftBtn" title="Upload File">
-                            <i class="fas fa-folder-open"></i>
+                    <div class="tab-system">
+                        <button class="tab-btn active" data-target="codeLeft">
+                            <i class="fas fa-code"></i> Raw Code
                         </button>
-                        <button class="tool-btn" id="downloadLeftBtn" title="Download JSON">
-                            <i class="fas fa-download"></i>
+                        <button class="tab-btn" data-target="treeLeft">
+                            <i class="fas fa-sitemap"></i> Visual Tree
                         </button>
-                        <button class="tool-btn" id="copyLeftBtn" title="Copy to Clipboard">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="editor-wrapper">
-                    <textarea id="jsonLeft" placeholder="Paste original JSON or upload a file..." spellcheck="false"></textarea>
-                </div>
-            </div>
-            
-            <!-- Right Panel -->
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title-area">
-                        <div class="panel-title">
-                            <span class="dot target-dot"></span>
-                            <h2>Target Source</h2>
-                        </div>
-                        <span class="status" id="statusRight"></span>
                     </div>
 
-                    <div class="panel-tools">
-                        <input type="file" id="uploadRight" accept=".json,.txt" class="hidden">
-                        <button class="tool-btn" id="uploadRightBtn" title="Upload File">
-                            <i class="fas fa-folder-open"></i>
-                        </button>
-                        <button class="tool-btn" id="downloadRightBtn" title="Download JSON">
-                            <i class="fas fa-download"></i>
-                        </button>
-                        <button class="tool-btn" id="copyRightBtn" title="Copy to Clipboard">
-                            <i class="fas fa-copy"></i>
-                        </button>
+                    <div class="tool-group">
+                        <span class="file-badge">Original Data</span>
+                        <input type="file" id="uploadLeft" accept=".json,.txt" class="hidden">
+                        <button class="icon-action" id="uploadLeftBtn" title="Upload File"><i class="fas fa-folder-open"></i></button>
+                        <button class="icon-action" id="downloadLeftBtn" title="Download"><i class="fas fa-download"></i></button>
+                        <button class="icon-action" id="copyLeftBtn" title="Copy"><i class="far fa-copy"></i></button>
+                    </div>
+                </header>
+                
+                <div class="card-body">
+                    <!-- Code Editor View -->
+                    <div class="view-layer active" id="codeLeft">
+                        <div class="gutter" id="linesLeft">1</div>
+                        <textarea class="code-input" id="jsonLeft" wrap="off" spellcheck="false" placeholder="Paste your first JSON or upload a file..."></textarea>
+                    </div>
+                    <!-- Visual Tree View -->
+                    <div class="view-layer tree-view-container" id="treeLeft">
+                        <div class="tree-content" id="treeContentLeft">
+                            <div class="empty-tree-state">
+                                <i class="fas fa-sitemap"></i>
+                                <p>Provide valid JSON to view the structure tree.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="editor-wrapper">
-                    <textarea id="jsonRight" placeholder="Paste modified JSON or upload a file..." spellcheck="false"></textarea>
+
+                <footer class="card-footer">
+                    <div class="status-indicator" id="statusLeft">
+                        <div class="status-dot"></div>
+                        <span class="status-text">Ready</span>
+                    </div>
+                    <div class="stats-mini" id="statsLeftMini">0 lines • 0 bytes</div>
+                </footer>
+            </section>
+
+            <!-- RIGHT PANEL -->
+            <section class="editor-card">
+                <header class="card-header">
+                    <div class="window-controls">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                    </div>
+                    
+                    <div class="tab-system">
+                        <button class="tab-btn active" data-target="codeRight">
+                            <i class="fas fa-code"></i> Raw Code
+                        </button>
+                        <button class="tab-btn" data-target="treeRight">
+                            <i class="fas fa-sitemap"></i> Visual Tree
+                        </button>
+                    </div>
+
+                    <div class="tool-group">
+                        <span class="file-badge target-badge">Target Data</span>
+                        <input type="file" id="uploadRight" accept=".json,.txt" class="hidden">
+                        <button class="icon-action" id="uploadRightBtn" title="Upload File"><i class="fas fa-folder-open"></i></button>
+                        <button class="icon-action" id="downloadRightBtn" title="Download"><i class="fas fa-download"></i></button>
+                        <button class="icon-action" id="copyRightBtn" title="Copy"><i class="far fa-copy"></i></button>
+                    </div>
+                </header>
+                
+                <div class="card-body">
+                    <div class="view-layer active" id="codeRight">
+                        <div class="gutter" id="linesRight">1</div>
+                        <textarea class="code-input" id="jsonRight" wrap="off" spellcheck="false" placeholder="Paste your modified JSON to compare..."></textarea>
+                    </div>
+                    <div class="view-layer tree-view-container" id="treeRight">
+                        <div class="tree-content" id="treeContentRight">
+                            <div class="empty-tree-state">
+                                <i class="fas fa-sitemap"></i>
+                                <p>Provide valid JSON to view the structure tree.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <footer class="card-footer">
+                    <div class="status-indicator" id="statusRight">
+                        <div class="status-dot"></div>
+                        <span class="status-text">Ready</span>
+                    </div>
+                    <div class="stats-mini" id="statsRightMini">0 lines • 0 bytes</div>
+                </footer>
+            </section>
+
         </main>
 
-        <main class="diff-container hidden" id="diffView">
-            <div class="diff-header">
-                <div class="diff-title-area">
-                    <button id="backBtn" class="btn secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Editor
+        <!-- DIFF VIEW -->
+        <main class="workspace hidden" id="diffView">
+            <section class="editor-card full-width">
+                <header class="card-header diff-header-main">
+                    <button id="backBtn" class="btn btn-glass">
+                        <i class="fas fa-arrow-left"></i> Back to Workspace
                     </button>
-                    <div class="diff-stats">
-                        <span class="stat additions" title="Added Lines"><i class="fas fa-plus"></i> <span id="statAdd">0</span></span>
-                        <span class="stat deletions" title="Removed Lines"><i class="fas fa-minus"></i> <span id="statDel">0</span></span>
-                        <span class="stat modifications" title="Modified Lines"><i class="fas fa-pen"></i> <span id="statMod">0</span></span>
+                    
+                    <div class="diff-summary-pills">
+                        <div class="pill add">
+                            <i class="fas fa-plus"></i>
+                            <span class="count" id="statAdd">0</span> Additions
+                        </div>
+                        <div class="pill del">
+                            <i class="fas fa-minus"></i>
+                            <span class="count" id="statDel">0</span> Deletions
+                        </div>
+                        <div class="pill mod">
+                            <i class="fas fa-pen"></i>
+                            <span class="count" id="statMod">0</span> Modifications
+                        </div>
+                    </div>
+                </header>
+
+                <div class="diff-split-view">
+                    <!-- Left Diff -->
+                    <div class="diff-pane">
+                        <div class="diff-pane-title">Original File</div>
+                        <div class="diff-code-area" id="diffLeft"></div>
+                    </div>
+                    <!-- Right Diff -->
+                    <div class="diff-pane right-pane">
+                        <div class="diff-pane-title">Target File</div>
+                        <div class="diff-code-area" id="diffRight"></div>
                     </div>
                 </div>
-                <div class="diff-panel-labels">
-                    <div class="label-left">Original</div>
-                    <div class="label-right">Target</div>
-                </div>
-            </div>
-            <div class="diff-content">
-                <div class="diff-panel" id="diffLeft"></div>
-                <div class="diff-panel" id="diffRight"></div>
-            </div>
+            </section>
         </main>
         
-        <!-- Toast Notification Container -->
-        <div id="toastContainer" class="toast-container"></div>
+        <!-- Toasts Output -->
+        <div id="toastContainer" class="toast-wrapper"></div>
     </div>
 
     <script src="script.js"></script>
