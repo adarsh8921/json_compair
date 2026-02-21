@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter & Comparator</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Background effects -->
+    <div class="bg-glow"></div>
+    <div class="bg-grid"></div>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon-wrapper">
+                    <i class="fas fa-layer-group logo-icon"></i>
+                </div>
+                <h1>JSON<span class="font-light">Studio</span></h1>
+            </div>
+            <div class="actions">
+                <button id="formatBtn" class="btn secondary">
+                    <i class="fas fa-wand-magic-sparkles"></i> Format
+                </button>
+                <button id="compareBtn" class="btn primary">
+                    <i class="fas fa-code-compare"></i> Compare
+                </button>
+                <button id="clearBtn" class="btn danger-outline">
+                    <i class="fas fa-trash-can"></i> Clear
+                </button>
+                <div class="divider"></div>
+                <button id="themeToggle" class="btn icon-btn" title="Toggle Theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="editor-container" id="editorView">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                         <span class="dot origin-dot"></span>
+                         <h2>Original Source</h2>
+                    </div>
+                    <span class="status" id="statusLeft"></span>
+                </div>
+                <div class="editor-wrapper">
+                    <textarea id="jsonLeft" placeholder="{" spellcheck="false"></textarea>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                         <span class="dot target-dot"></span>
+                         <h2>Target Source</h2>
+                    </div>
+                    <span class="status" id="statusRight"></span>
+                </div>
+                <div class="editor-wrapper">
+                    <textarea id="jsonRight" placeholder="{" spellcheck="false"></textarea>
+                </div>
+            </div>
+        </main>
+
+        <main class="diff-container hidden" id="diffView">
+            <div class="diff-header">
+                <div class="diff-title-area">
+                    <button id="backBtn" class="btn secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Editor
+                    </button>
+                    <div class="diff-stats">
+                        <span class="stat additions"><i class="fas fa-plus"></i> <span id="statAdd">0</span></span>
+                        <span class="stat deletions"><i class="fas fa-minus"></i> <span id="statDel">0</span></span>
+                        <span class="stat modifications"><i class="fas fa-pen"></i> <span id="statMod">0</span></span>
+                    </div>
+                </div>
+                <div class="diff-panel-labels">
+                    <div class="label-left">Original</div>
+                    <div class="label-right">Target</div>
+                </div>
+            </div>
+            <div class="diff-content">
+                <div class="diff-panel" id="diffLeft"></div>
+                <div class="diff-panel" id="diffRight"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
