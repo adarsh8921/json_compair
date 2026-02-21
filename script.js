@@ -1,29 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
+    // --- DOM Elements ---
     const formatBtn = document.getElementById('formatBtn');
+    const minifyBtn = document.getElementById('minifyBtn');
     const compareBtn = document.getElementById('compareBtn');
     const clearBtn = document.getElementById('clearBtn');
     const themeToggle = document.getElementById('themeToggle');
     const backBtn = document.getElementById('backBtn');
+    const sortKeysToggle = document.getElementById('sortKeysToggle');
     
+    // Editors
     const jsonLeft = document.getElementById('jsonLeft');
     const jsonRight = document.getElementById('jsonRight');
     const statusLeft = document.getElementById('statusLeft');
     const statusRight = document.getElementById('statusRight');
     
+    // Tools
+    const uploadLeft = document.getElementById('uploadLeft');
+    const uploadLeftBtn = document.getElementById('uploadLeftBtn');
+    const downloadLeftBtn = document.getElementById('downloadLeftBtn');
+    const copyLeftBtn = document.getElementById('copyLeftBtn');
+
+    const uploadRight = document.getElementById('uploadRight');
+    const uploadRightBtn = document.getElementById('uploadRightBtn');
+    const downloadRightBtn = document.getElementById('downloadRightBtn');
+    const copyRightBtn = document.getElementById('copyRightBtn');
+
+    // Views
     const editorView = document.getElementById('editorView');
     const diffView = document.getElementById('diffView');
     
+    // Diff Panels
     const diffLeft = document.getElementById('diffLeft');
     const diffRight = document.getElementById('diffRight');
-    const diffContentContainer = document.querySelector('.diff-content');
-    
     const statAdd = document.getElementById('statAdd');
     const statDel = document.getElementById('statDel');
     const statMod = document.getElementById('statMod');
 
-    // Setup Theme
-    const savedTheme = localStorage.getItem('theme') || 'dark'; // Default to dark for premium feel
+    const toastContainer = document.getElementById('toastContainer');
+
+    // --- Toast Notifications ---
+    function showToast(message, icon = 'check-circle') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('toast-exit');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // --- Theme Management ---
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
 
@@ -37,11 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateThemeIcon(theme) {
         const icon = themeToggle.querySelector('i');
-        if (theme === 'dark') {
-            icon.className = 'fas fa-sun';
-        } else {
-            icon.className = 'fas fa-moon';
-        }
+        icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
     }
     
     function showStatus(el, message, type) {
@@ -49,7 +74,70 @@ document.addEventListener('DOMContentLoaded', () => {
         el.className = `status show ${type}`;
     }
 
-    // Handlers
+    // --- Core Utilities ---
+    const sortObjectKeys = (o) => {
+        if (o === null || typeof o !== 'object') return o;
+        if (Array.isArray(o)) return o.map(sortObjectKeys);
+        return Object.keys(o).sort().reduce((acc, key) => {
+            acc[key] = sortObjectKeys(o[key]);
+            return acc;
+        }, {});
+    };
+
+    function processJSON(textarea, statusElement, action = 'format') {
+        const rawValue = textarea.value.trim();
+        if (!rawValue) {
+            statusElement.className = 'status';
+            return;
+        }
+        try {
+            const parsed = JSON.parse(rawValue);
+            const finalObject = sortKeysToggle.checked ? sortObjectKeys(parsed) : parsed;
+            
+            if (action === 'format') {
+                textarea.value = JSON.stringify(finalObject, null, 2);
+                showToast("Formatted successfully", "wand-magic-sparkles");
+            } else if (action === 'minify') {
+                textarea.value = JSON.stringify(finalObject);
+                showToast("Minified successfully", "compress");
+            }
+            showStatus(statusElement, 'Valid JSON ✓', 'success');
+        } catch (e) {
+            showStatus(statusElement, 'Invalid JSON ✗', 'error');
+            showToast("Invalid JSON syntax", "triangle-exclamation");
+        }
+    }
+
+    function handleFileUpload(input, textarea, statusElement) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            textarea.value = e.target.result;
+            processJSON(textarea, statusElement, 'format');
+            input.value = ''; // Reset
+        };
+        reader.readAsText(file);
+    }
+
+    function downloadFile(content, fileName) {
+        const blob = new Blob([content], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function copyToClipboard(text) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("Copied to clipboard!", "copy");
+        });
+    }
+
+    // --- Event Listeners ---
     clearBtn.addEventListener('click', () => {
         jsonLeft.value = '';
         jsonRight.value = '';
@@ -57,52 +145,52 @@ document.addEventListener('DOMContentLoaded', () => {
         statusRight.className = 'status';
         diffLeft.innerHTML = '';
         diffRight.innerHTML = '';
+        showToast("Editors cleared", "trash-can");
     });
 
     formatBtn.addEventListener('click', () => {
-        formatJSON(jsonLeft, statusLeft);
-        formatJSON(jsonRight, statusRight);
+        processJSON(jsonLeft, statusLeft, 'format');
+        processJSON(jsonRight, statusRight, 'format');
     });
 
-    // Handle Tab Key in textareas for indentation
+    minifyBtn.addEventListener('click', () => {
+        processJSON(jsonLeft, statusLeft, 'minify');
+        processJSON(jsonRight, statusRight, 'minify');
+    });
+
+    // Tool Buttons Listeners
+    uploadLeftBtn.addEventListener('click', () => uploadLeft.click());
+    uploadRightBtn.addEventListener('click', () => uploadRight.click());
+    
+    uploadLeft.addEventListener('change', () => handleFileUpload(uploadLeft, jsonLeft, statusLeft));
+    uploadRight.addEventListener('change', () => handleFileUpload(uploadRight, jsonRight, statusRight));
+
+    downloadLeftBtn.addEventListener('click', () => {
+        if (!jsonLeft.value) return showToast("Nothing to download", "info-circle");
+        downloadFile(jsonLeft.value, "original.json");
+    });
+    downloadRightBtn.addEventListener('click', () => {
+        if (!jsonRight.value) return showToast("Nothing to download", "info-circle");
+        downloadFile(jsonRight.value, "target.json");
+    });
+
+    copyLeftBtn.addEventListener('click', () => copyToClipboard(jsonLeft.value));
+    copyRightBtn.addEventListener('click', () => copyToClipboard(jsonRight.value));
+
+    // Handle Tab Key for indentation
     [jsonLeft, jsonRight].forEach(textarea => {
         textarea.addEventListener('keydown', function(e) {
             if (e.key === 'Tab') {
                 e.preventDefault();
                 const start = this.selectionStart;
                 const end = this.selectionEnd;
-                // set textarea value to: text before caret + tab + text after caret
                 this.value = this.value.substring(0, start) + "  " + this.value.substring(end);
-                // put caret at right position again
                 this.selectionStart = this.selectionEnd = start + 2;
             }
         });
     });
 
-    function formatJSON(textarea, statusElement) {
-        if (!textarea.value.trim()) {
-            statusElement.className = 'status';
-            return;
-        }
-        try {
-            const parsed = JSON.parse(textarea.value);
-            // Optional: Sort keys alphabetically for neatness
-            const sortObject = (o) => {
-                if (o === null || typeof o !== 'object') return o;
-                if (Array.isArray(o)) return o.map(sortObject);
-                return Object.keys(o).sort().reduce((acc, key) => {
-                    acc[key] = sortObject(o[key]);
-                    return acc;
-                }, {});
-            };
-            
-            textarea.value = JSON.stringify(sortObject(parsed), null, 2);
-            showStatus(statusElement, 'Valid JSON ✓', 'success');
-        } catch (e) {
-            showStatus(statusElement, 'Invalid JSON ✗', 'error');
-        }
-    }
-
+    // --- Diff Engine ---
     backBtn.addEventListener('click', () => {
         diffView.classList.add('hidden');
         editorView.classList.remove('hidden');
@@ -131,21 +219,16 @@ document.addEventListener('DOMContentLoaded', () => {
             valid = false;
         }
 
-        if (!valid) return;
+        if (!valid) {
+            showToast("Cannot compare invalid JSON", "triangle-exclamation");
+            return;
+        }
 
-        const sortObject = (o) => {
-            if (o === null || typeof o !== 'object') return o;
-            if (Array.isArray(o)) return o.map(sortObject);
-            return Object.keys(o).sort().reduce((acc, key) => {
-                acc[key] = sortObject(o[key]);
-                return acc;
-            }, {});
-        };
+        const processObj = (o) => sortKeysToggle.checked ? sortObjectKeys(o) : o;
 
-        const str1 = JSON.stringify(sortObject(obj1), null, 2);
-        const str2 = JSON.stringify(sortObject(obj2), null, 2);
+        const str1 = JSON.stringify(processObj(obj1), null, 2);
+        const str2 = JSON.stringify(processObj(obj2), null, 2);
 
-        // Update Textareas with formatted values
         jsonLeft.value = str1;
         jsonRight.value = str2;
 
@@ -153,17 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         editorView.classList.add('hidden');
         diffView.classList.remove('hidden');
+        showToast("Analysis complete", "chart-bar");
     });
 
     function createDiffLine(text, type, lineNum) {
         const div = document.createElement('div');
-        let typeClass = '';
-        if (text === null) {
-            typeClass = 'empty';
-        } else {
-            typeClass = type === 'removed' ? 'removed' : (type === 'added' ? 'added' : (type === 'changed' ? 'changed' : ''));
-        }
-        
+        let typeClass = text === null ? 'empty' : (type === 'removed' ? 'removed' : (type === 'added' ? 'added' : (type === 'changed' ? 'changed' : '')));
         div.className = `diff-line ${typeClass}`;
         
         const numDiv = document.createElement('div');
@@ -176,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         div.appendChild(numDiv);
         div.appendChild(contentDiv);
-        
         return div;
     }
 
@@ -189,26 +266,16 @@ document.addEventListener('DOMContentLoaded', () => {
         diffLeft.innerHTML = '';
         diffRight.innerHTML = '';
         
-        let addCount = 0;
-        let delCount = 0;
-        let modCount = 0;
-        
-        let leftLineNum = 1;
-        let rightLineNum = 1;
+        let addCount = 0; let delCount = 0; let modCount = 0;
+        let leftLineNum = 1; let rightLineNum = 1;
 
         const fragLeft = document.createDocumentFragment();
         const fragRight = document.createDocumentFragment();
 
         diffLines.forEach(line => {
-            let lNum = null;
-            let rNum = null;
-            
-            if (line.left !== null) {
-                lNum = leftLineNum++;
-            }
-            if (line.right !== null) {
-                rNum = rightLineNum++;
-            }
+            let lNum = null; let rNum = null;
+            if (line.left !== null) lNum = leftLineNum++;
+            if (line.right !== null) rNum = rightLineNum++;
 
             const divL = createDiffLine(line.left, line.type === 'added' ? 'empty' : line.type, lNum);
             const divR = createDiffLine(line.right, line.type === 'removed' ? 'empty' : line.type, rNum);
@@ -234,46 +301,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const n = lines2.length;
         
         if (m * n > 10000000) {
-            alert("JSON is too large for detailed side-by-side diff. Showing basic comparison.");
             const maxLen = Math.max(m, n);
             const basic = [];
             for (let i=0; i<maxLen; i++) {
                 if (i < m && i < n) {
                     if (lines1[i] === lines2[i]) basic.push({type: 'unchanged', left: lines1[i], right: lines2[i]});
                     else basic.push({type: 'changed', left: lines1[i], right: lines2[i]});
-                } else if (i < m) {
-                    basic.push({type: 'removed', left: lines1[i], right: null});
-                } else {
-                    basic.push({type: 'added', left: null, right: lines2[i]});
-                }
+                } else if (i < m) { basic.push({type: 'removed', left: lines1[i], right: null});
+                } else { basic.push({type: 'added', left: null, right: lines2[i]}); }
             }
             return basic;
         }
 
         const dp = new Array(m + 1);
-        for (let i = 0; i <= m; i++) {
-            dp[i] = new Int32Array(n + 1);
-        }
+        for (let i = 0; i <= m; i++) dp[i] = new Int32Array(n + 1);
 
         for (let i = 1; i <= m; i++) {
             for (let j = 1; j <= n; j++) {
-                if (lines1[i - 1] === lines2[j - 1]) {
-                    dp[i][j] = dp[i - 1][j - 1] + 1;
-                } else {
-                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
-                }
+                if (lines1[i - 1] === lines2[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+                else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
             }
         }
 
         const path = [];
-        let i = m;
-        let j = n;
+        let i = m; let j = n;
 
         while (i > 0 || j > 0) {
             if (i > 0 && j > 0 && lines1[i - 1] === lines2[j - 1]) {
                 path.unshift({ type: 'unchanged', left: lines1[i - 1], right: lines2[j - 1] });
-                i--;
-                j--;
+                i--; j--;
             } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
                 path.unshift({ type: 'added', left: null, right: lines2[j - 1] });
                 j--;
@@ -294,23 +350,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return path;
     }
     
-    // Sync scroll for textareas
+    // Auto-scroll sync handling
     function syncScroll(elements) {
-        elements.forEach(el => {
-            el.addEventListener('scroll', (e) => {
-                elements.forEach(target => {
-                    if (target !== e.target) {
-                        const maxScrollSource = e.target.scrollHeight - e.target.clientHeight;
-                        const maxScrollTarget = target.scrollHeight - target.clientHeight;
-                        
-                        if (maxScrollSource > 0) {
-                            const percentage = e.target.scrollTop / maxScrollSource;
-                            target.scrollTop = percentage * maxScrollTarget;
-                        }
-                        target.scrollLeft = e.target.scrollLeft;
-                    }
-                });
-            });
+        let isSyncingLeftScroll = false;
+        let isSyncingRightScroll = false;
+
+        elements[0].addEventListener('scroll', function(e) {
+            if (!isSyncingLeftScroll) {
+                isSyncingRightScroll = true;
+                const percentage = this.scrollTop / (this.scrollHeight - this.clientHeight);
+                elements[1].scrollTop = percentage * (elements[1].scrollHeight - elements[1].clientHeight);
+                elements[1].scrollLeft = this.scrollLeft;
+            }
+            isSyncingLeftScroll = false;
+        });
+
+        elements[1].addEventListener('scroll', function(e) {
+            if (!isSyncingRightScroll) {
+                isSyncingLeftScroll = true;
+                const percentage = this.scrollTop / (this.scrollHeight - this.clientHeight);
+                elements[0].scrollTop = percentage * (elements[0].scrollHeight - elements[0].clientHeight);
+                elements[0].scrollLeft = this.scrollLeft;
+            }
+            isSyncingRightScroll = false;
         });
     }
 
